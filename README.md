@@ -1,6 +1,6 @@
 # Retina
 
-Implementation of a feedforward fully connected **Neural Network** to perform both **Classification** and **Regression** tasks. Originally implemented for a Machine Learning project at University of Pisa.  
+Minimal implementation of a feedforward fully connected **Neural Network** to perform both **Classification** and **Regression** tasks. Originally implemented for a Machine Learning project at University of Pisa.  
 
 ### Requirements
 
