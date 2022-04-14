@@ -257,6 +257,7 @@ double MultiLayerPerceptron::MSE(const Matrix &target,
 
 /****************************************************************************/
 // Given a Matrix X, add a column of 1's for the bias
+
 Matrix operator + (Matrix X, Bias b) {
     X.conservativeResize(X.rows(), X.cols() + 1);
     b.resize(X.rows());
@@ -266,6 +267,7 @@ Matrix operator + (Matrix X, Bias b) {
 
 /****************************************************************************/
 // Given a Matrix X, remove last column to remove the bias
+
 Matrix operator - (Matrix X, Bias b) {
     X.conservativeResize(X.rows(), X.cols() - 1);
     return X;

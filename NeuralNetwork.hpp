@@ -1,6 +1,12 @@
 /****************************************************************************/
 /*                            NeuralNetwork.hpp                             */
 /****************************************************************************/
+/* Implementation of a feedforward fully-connected Neural Network.
+* 
+* Two main classes are defined: MultiLayerPerceptron Class which can be used
+* to perform a Regression task; BinaryClassifier Class (derived from
+* MultiLayerPerceptron) to perform a Binary Classification task. 
+*/
 
 #ifndef NEURAL_NETWORK_HPP_         
 #define NEURAL_NETWORK_HPP_ 
