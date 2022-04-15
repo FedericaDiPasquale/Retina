@@ -15,12 +15,11 @@ void MultiLayerPerceptron::train(Matrix X, Matrix y) {
 
     /*************************** Initializations ****************************/
 
-    topology.front() = X.cols();   // number of attributes        
-    topology.back() = y.cols();    // number of outputs         
+    topology.front() = X.cols();  // number of attributes        
+    topology.back() = y.cols();   // number of outputs         
     
-    vec_Matrix dW;                 // matrices of delta weights (= -gradient)
-
-    vec_Matrix Xb, yb;             // vectors of blocks of data for mini-batch
+    vec_Matrix dW;                // matrices of delta weights (= -gradient)
+    vec_Matrix Xb, yb;            // vectors of blocks of data for mini-batch
 
     // Initiliaze W with small random values and dW with all 0's
     initialize_weights(dW);                        
@@ -37,7 +36,7 @@ void MultiLayerPerceptron::train(Matrix X, Matrix y) {
 
         double error = 0;           // initialize error
         
-        // Split X and y in blocks of size = batch_size      
+        // Split X and y in blocks of size = batch_size     
         split(X, y, Xb, yb, batch_size);      
 
         // for each block of data
@@ -50,7 +49,7 @@ void MultiLayerPerceptron::train(Matrix X, Matrix y) {
             error += MSE(yb[i], y);                 
 
             // compute delta = (target - output) * derivative(output)
-            Matrix delta = (yb[i] - y).cwiseProduct(f(nets.back(), f_out, 1));
+            Matrix delta = (yb[i] - y).cwiseProduct(f(get_n_layers()-1,1));
             
             // backpropagate delta to compute dW
             backward_pass(delta, dW);            
@@ -93,37 +92,30 @@ void MultiLayerPerceptron::initialize_weights(vec_Matrix &dW) {
 } 
 
 /****************************************************************************/
+// Compute outputs for input data X
 
 Matrix MultiLayerPerceptron::forward_pass(const Matrix &X) {
-
-    nets[0] = X;                                        // First Layer
-    nets[1] = (nets[0] + bias) * W[0].transpose();      // Second Layer
-
-    for ( int i = 2; i < get_n_layers(); ++i ) 
-        nets[i] = (f(nets[i-1]) + bias) * W[i-1].transpose();                       
     
-    // Final outputs: apply activation function f_out
-    return f(nets.back(), f_out);
+    nets[0] = X;        
+    for ( int i = 1; i < get_n_layers(); ++i ) 
+        nets[i] = (f(i-1) + bias) * W[i-1].transpose();
+
+    return f(get_n_layers()-1);
 }
 
 /****************************************************************************/
+// Backpropagate delta and compute delta weights
 
 void MultiLayerPerceptron::backward_pass(Matrix &delta, vec_Matrix &dW) {
 
-    for ( int i = get_n_layers() - 2; i > 0; --i ) {
-        // compute delta weights
-        dW[i] = delta.transpose() * (f(nets[i]) + bias);
-        // update delta
-        delta = delta * (W[i] - bias);
-        // multiply by derivative
-        delta = delta.cwiseProduct(f(nets[i], f_hid, 1));
+    for ( int i = get_n_layers() - 2; i >= 0; --i ) {
+        dW[i] = delta.transpose() * (f(i) + bias);
+        delta = (delta * (W[i] - bias)).cwiseProduct(f(i,1));
     }
-
-    // For the first layer no need of activation function
-    dW[0] = delta.transpose() * (nets[0] + bias);
 }
 
 /****************************************************************************/
+// Update weights also applying regularization (if any)
 
 void MultiLayerPerceptron::update_weights(vec_Matrix &dW) {
 
@@ -138,6 +130,7 @@ void MultiLayerPerceptron::update_weights(vec_Matrix &dW) {
 }
 
 /*************************** Activation functions ***************************/
+// Apply activation function sf to x. df = 1 for first derivative
 
 double MultiLayerPerceptron::f(double x, std::string sf, int df) {
 
@@ -170,19 +163,27 @@ double MultiLayerPerceptron::f(double x, std::string sf, int df) {
 }
 
 /****************************************************************************/
+// Return f(net[layer]). df = 1 for derivative
 
-Matrix MultiLayerPerceptron::f(const Matrix &X, std::string sf, int df) {
+Matrix MultiLayerPerceptron::f(int layer, int df) {
 
-    if ( sf == "" )
+    std::string sf;         // string to specify the activation function
+
+    if ( layer == 0 )
+        sf = "identity";
+    else if ( layer == get_n_layers() - 1 )
+        sf = f_out;
+    else
         sf = f_hid;
 
-    Matrix fX(X.rows(), X.cols());      // Initialize result
+    // Initialize result
+    Matrix fnet(nets[layer].rows(), nets[layer].cols());      
 
-    for ( int i = 0; i < X.rows(); ++i )
-        for( int j = 0; j < X.cols(); ++j )
-            fX(i,j) = f(X(i,j), sf, df);
+    for ( int i = 0; i < fnet.rows(); ++i )
+        for( int j = 0; j < fnet.cols(); ++j )
+            fnet(i,j) = f(nets[layer](i,j), sf, df);
 
-    return std::move(fX);
+    return fnet;
 }
 
 /***************************** Private Methods ******************************/
@@ -200,6 +201,7 @@ void MultiLayerPerceptron::shuffle(Matrix &X, Matrix &y, rand_gen rg) {
 }
 
 /****************************************************************************/
+// Split data in blocks of size = batch_size and store them in Xb and yb
 
 void MultiLayerPerceptron::split(Matrix &X, Matrix &y, 
                                  vec_Matrix &Xb, vec_Matrix &yb, 
@@ -241,9 +243,8 @@ Matrix MultiLayerPerceptron::random_matrix(int m, int n,
 /****************************************************************************/
 // return mean square error
 
-double MultiLayerPerceptron::MSE(const Matrix &target, 
-                                 const Matrix &output) {
-    
+double MultiLayerPerceptron::MSE(const Matrix &target, const Matrix &output) 
+{    
     Matrix delta = target - output;
 
     double mse = 0;     // Initialize result

@@ -161,9 +161,9 @@ protected:
 
     /************************* Activation functions *************************/
 
-    double f(double x, std::string sf = "", int df = 0);
+    double f(double x, std::string sf, int df = 0);
 
-    Matrix f(const Matrix &X, std::string sf = "", int df = 0);
+    Matrix f(int layer, int df = 0);
 
     /*************************** Protected Fields ***************************/
 
