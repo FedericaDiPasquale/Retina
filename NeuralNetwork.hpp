@@ -5,8 +5,50 @@
 * 
 * Two main classes are defined: MultiLayerPerceptron Class which can be used
 * to perform a Regression task; BinaryClassifier Class (derived from
-* MultiLayerPerceptron) to perform a Binary Classification task. 
-*/
+* MultiLayerPerceptron) to perform a Binary Classification task.
+*
+* MultiLayerPerceptron Class represents a feedforward fully-connected Neural
+* Network. The parameters of the network are:
+*
+*   - topology: vector of int that specify the number of units of each layer 
+*               without considering the bias. Number of units for input layer 
+*               and  output layer depend on the actual data (number of 
+*               attributes and number of outputs), hence they are initiliazed 
+*               to 0 and updated when the train(X,y) method is called.
+*               Default value: {0, 5, 0}    (5 units in 1 hidden layer)
+*
+*   - f_hid, f_out: activation functions for hidden and output units.
+*                   Allowed values = {"identity", "sigmoid", "tanh"}
+*                   Default values: f_hid = "sigmoid", f_out = "identity"
+*
+*   Algorithmic parameters:
+*
+*   - max_iter: maximum number of iteration
+*   - seed: seed for the random generator
+*   - eta: learning rate
+*   - batch_size: weights are updated after processing n = batch_size patterns
+*   - tol: tolerance for the optimization
+*
+* Protected fields:
+*
+*   - W: is the vector of matrices that represent the weights of the network. 
+*        There is a matrix of weights for each pair of adjacent layers, hence 
+*        the vector has size = #layers - 1. Each matrix W[i] connects units of 
+*        layer (i+1) to units of layer i plus 1 unit for the bias; first index 
+*        refers to units in layer (i+1) and second index to units in layer i.
+*
+*   - nets: is a vector of matrices that contains the "nets" of each layer for 
+*           each input pattern, hence the size of the vector = #layers. 
+*           For example: net[1] is the matrix of nets of layer 1 and 
+*           net[1](i,j) is the net of unit j for pattern i.    
+*
+* The MultiLayerPerceptron is trained by BackPropagation with the standard
+* Gradient Descent algorithm as optimization solver (in the train() method). 
+* The Loss function is the Mean Square Error.
+*
+* Author: Federica Di Pasquale
+*                     
+*****************************************************************************/
 
 #ifndef NEURAL_NETWORK_HPP_         
 #define NEURAL_NETWORK_HPP_ 
